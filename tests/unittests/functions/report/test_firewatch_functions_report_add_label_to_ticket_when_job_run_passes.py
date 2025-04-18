@@ -30,6 +30,8 @@ def fake_job_has_open_bugs(monkeypatch, fake_issue_key):
         return [fake_issue_key]
 
     monkeypatch.setattr(Report, "_get_open_bugs", _get_open_bugs)
+    _logger.info("Report._get_open_bugs has been patched to return [%s]", fake_issue_key)
+
 
 
 def test_fixtures_fake_jira_issue_exists(
