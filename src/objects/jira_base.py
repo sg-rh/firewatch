@@ -385,6 +385,10 @@ class Jira:
         """
         issue = self.get_issue_by_id_or_key(issue_id_or_key)
         payload = {"update": {"labels": [{"add": label} for label in labels]}}
+        # Workaround: use the session PUT with explicit Content-Type because the python-jira
+        # library's issue.update() does not set Content-Type: application/json on the request.
+        # Jira Cloud rejects that with HTTP 415. Prefer self.connection.* elsewhere; this is
+        # the only call that bypasses the library until pycontribs/jira fixes the header.
         try:
             response = self.connection._session.put(
                 issue.self,
