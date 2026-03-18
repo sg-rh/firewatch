@@ -384,10 +384,19 @@ class Jira:
             Issue: A Jira Issue object.
         """
         issue = self.get_issue_by_id_or_key(issue_id_or_key)
+        payload = {"update": {"labels": [{"add": label} for label in labels]}}
         try:
-            issue.update(update={"labels": [{"add": label} for label in labels]})
-
-        # Check if the error is a 400 code and potentially due to user permissions.
+            response = self.connection._session.put(
+                issue.self,
+                data=json.dumps(payload),
+                headers={"Content-Type": "application/json"},
+            )
+            if not response.ok:
+                raise JIRAError(
+                    response.status_code,
+                    response.text,
+                    response.url,
+                )
         except JIRAError as error:
             if error.status_code == 400:
                 LOGGER.error(
