@@ -525,7 +525,11 @@ def patch_jira_api_requests(
         ):
             data = json.loads(data)
             _json = fake_issue_json.copy()
-            _json["fields"].update(data["fields"])
+            # REST API v3 label update uses {"update": {"labels": [{"add": "..."}]}}
+            if "update" in data:
+                pass  # Accept label/field updates; return success
+            elif "fields" in data:
+                _json["fields"].update(data["fields"])
             return MockJiraApiResponse(_json=_json, _status_code=204)
         else:
             LOGGER.info(f"Unpatched PUT request to: {url}")

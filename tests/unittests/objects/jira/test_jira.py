@@ -33,6 +33,19 @@ class TestJiraApiRespondsWithSuccess:
         assert isinstance(issue, Issue)
         assert issue.id == fake_issue_id
 
+    def test_add_labels_to_issue_sends_content_type_json_for_cloud_compatibility(
+        self, fake_issue_id, jira, patch_jira_api_requests
+    ):
+        """Adding labels uses PUT with Content-Type: application/json to avoid 415 from Jira Cloud."""
+        labels = ["retrigger", "firewatch"]
+        result = jira.add_labels_to_issue(issue_id_or_key=fake_issue_id, labels=labels)
+        assert result is not None
+        assert len(patch_jira_api_requests["put"]) == 1
+        _url, (data, args, kwargs) = next(iter(patch_jira_api_requests["put"].items()))
+        assert kwargs.get("headers", {}).get("Content-Type") == "application/json"
+        payload = json.loads(data)
+        assert payload == {"update": {"labels": [{"add": "retrigger"}, {"add": "firewatch"}]}}
+
 
 class TestJiraApiRespondsWithPermissionFailure:
     @pytest.fixture
